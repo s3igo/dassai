@@ -31,8 +31,10 @@
         packages.neovim = neovim.withModules {
           inherit system pkgs;
           modules = with neovim.modules; [
+            im-select
             nix
             rust
+            { plugins.lsp.servers.taplo.enable = true; }
           ];
         };
 
