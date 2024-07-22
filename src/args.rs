@@ -29,3 +29,41 @@ impl Args {
             .map(|ext| ext.split(',').map(String::from).collect())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::*;
+
+    #[test]
+    fn test_args_parse() {
+        let args = Args {
+            version: false,
+            extensions: Some("rs,js".to_string()),
+            paths: vec![PathBuf::from("src"), PathBuf::from("tests")],
+        };
+
+        assert!(!args.version);
+        assert_eq!(args.extensions, Some("rs,js".to_string()));
+        assert_eq!(args.paths, vec![
+            PathBuf::from("src"),
+            PathBuf::from("tests")
+        ]);
+    }
+
+    #[test]
+    fn test_args_extensions_vec() {
+        let args = Args {
+            version: false,
+            extensions: Some("rs,js,py".to_string()),
+            paths: vec![],
+        };
+
+        let extensions_vec = args.extensions_vec();
+        assert_eq!(
+            extensions_vec,
+            Some(vec!["rs".to_string(), "js".to_string(), "py".to_string()])
+        );
+    }
+}

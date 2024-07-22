@@ -39,6 +39,7 @@
         };
 
         devShells.default = pkgs.mkShell {
+          buildInputs = with pkgs; lib.optionals stdenv.isDarwin [ libiconv ];
           packages = [
             toolchain
             fenix'.default.rustfmt # rustfmt nightly

@@ -47,3 +47,44 @@ fn should_process_file(path: &std::path::Path, extensions: &Option<Vec<String>>)
         true
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{fs::File, io::Write, path::PathBuf};
+
+    use super::*;
+
+    #[test]
+    fn test_process_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let file_path = dir.path().join("test.rs");
+        let mut file = File::create(&file_path).unwrap();
+        writeln!(file, "fn main() {{}}").unwrap();
+
+        let result = process_file(&file_path);
+        assert!(result.is_ok());
+        // Note: We can't easily test the stdout without additional setup,
+        // but we can verify that the function completes without error.
+    }
+
+    #[test]
+    fn test_process_directory() {
+        let dir = tempfile::tempdir().unwrap();
+        let file_path = dir.path().join("test.rs");
+        let mut file = File::create(file_path).unwrap();
+        writeln!(file, "fn main() {{}}").unwrap();
+
+        let result = process_directory(&dir.path().to_path_buf(), &None);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_should_process_file() {
+        let path = PathBuf::from("test.rs");
+        let extensions = Some(vec!["rs".to_string(), "txt".to_string()]);
+
+        assert!(should_process_file(&path, &extensions));
+        assert!(!should_process_file(&PathBuf::from("test.js"), &extensions));
+        assert!(should_process_file(&path, &None));
+    }
+}
