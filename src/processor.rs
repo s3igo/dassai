@@ -7,6 +7,17 @@ use std::{
 use anyhow::{Context as _, Result};
 use walkdir::WalkDir;
 
+fn should_process_file(path: &Path, extensions: &Option<Vec<String>>) -> bool {
+    if let Some(exts) = extensions {
+        path.extension()
+            .map(|ext| exts.contains(&ext.to_string_lossy().to_string()))
+            .unwrap_or(false)
+    } else {
+        // If no extensions are provided, process all files.
+        true
+    }
+}
+
 pub fn process_directory(dir: &PathBuf, extensions: &Option<Vec<String>>) -> Result<()> {
     for entry in WalkDir::new(dir) {
         let entry = entry.context("Failed to read directory entry")?;
@@ -39,44 +50,12 @@ pub fn process_file(path: &Path) -> Result<()> {
     Ok(())
 }
 
-fn should_process_file(path: &Path, extensions: &Option<Vec<String>>) -> bool {
-    if let Some(exts) = extensions {
-        path.extension()
-            .map(|ext| exts.contains(&ext.to_string_lossy().to_string()))
-            .unwrap_or(false)
-    } else {
-        // If no extensions are provided, process all files.
-        true
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use std::{fs::File, io::Write, path::PathBuf};
+    use anyhow::Result;
+    use assert_fs::{prelude::*, NamedTempFile, TempDir};
 
     use super::*;
-
-    #[test]
-    fn test_process_file() {
-        let dir = tempfile::tempdir().unwrap();
-        let file_path = dir.path().join("test.rs");
-        let mut file = File::create(&file_path).unwrap();
-        writeln!(file, "fn main() {{}}").unwrap();
-
-        let result = process_file(&file_path);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_process_directory() {
-        let dir = tempfile::tempdir().unwrap();
-        let file_path = dir.path().join("test.rs");
-        let mut file = File::create(file_path).unwrap();
-        writeln!(file, "fn main() {{}}").unwrap();
-
-        let result = process_directory(&dir.path().to_path_buf(), &None);
-        assert!(result.is_ok());
-    }
 
     #[test]
     fn test_should_process_file() {
@@ -86,5 +65,26 @@ mod tests {
         assert!(should_process_file(&path, &extensions));
         assert!(!should_process_file(&PathBuf::from("test.js"), &extensions));
         assert!(should_process_file(&path, &None));
+    }
+
+    #[test]
+    fn test_process_file() -> Result<()> {
+        let file = NamedTempFile::new("test.rs")?;
+        file.touch()?;
+
+        process_file(file.path())?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_process_directory() -> Result<()> {
+        let dir = TempDir::new()?;
+        let file = dir.child("test.rs");
+        file.write_str("fn main() {}")?;
+
+        process_directory(&dir.to_path_buf(), &None)?;
+
+        Ok(())
     }
 }

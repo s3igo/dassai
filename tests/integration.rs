@@ -1,7 +1,8 @@
-use std::{fs::File, io::Write, process::Command};
+use std::process::Command;
 
 use anyhow::Result;
 use assert_cmd::prelude::*;
+use assert_fs::{prelude::*, TempDir};
 use predicates::prelude::*;
 
 #[test]
@@ -11,15 +12,15 @@ fn test_version_flag() -> Result<()> {
     cmd.assert()
         .success()
         .stdout(predicate::str::contains(env!("CARGO_PKG_VERSION")));
+
     Ok(())
 }
 
 #[test]
 fn test_process_directory() -> Result<()> {
-    let dir = tempfile::tempdir()?;
-    let file_path = dir.path().join("test.rs");
-    let mut file = File::create(&file_path)?;
-    writeln!(file, "fn main() {{}}")?;
+    let dir = TempDir::new()?;
+    let file = dir.child("test.rs");
+    file.write_str("fn main() {}")?;
 
     let mut cmd = Command::cargo_bin("dassai")?;
     cmd.arg(dir.path());
@@ -27,7 +28,7 @@ fn test_process_directory() -> Result<()> {
         .success()
         .stdout(predicate::str::contains(format!(
             "```rs title=\"{}\"",
-            file_path.display()
+            file.path().display()
         )))
         .stdout(predicate::str::contains("fn main() {}"));
 
@@ -36,12 +37,12 @@ fn test_process_directory() -> Result<()> {
 
 #[test]
 fn test_process_with_extensions() -> Result<()> {
-    let dir = tempfile::tempdir()?;
-    let rs_file = dir.path().join("test.rs");
-    let js_file = dir.path().join("test.js");
+    let dir = TempDir::new()?;
+    let rs_file = dir.child("test.rs");
+    let js_file = dir.child("test.js");
 
-    File::create(rs_file)?.write_all(b"fn main() {}")?;
-    File::create(js_file)?.write_all(b"console.log('Hello');")?;
+    rs_file.write_str("fn main() {}")?;
+    js_file.write_str("console.log('Hello');")?;
 
     let mut cmd = Command::cargo_bin("dassai")?;
     cmd.arg("--extensions").arg("rs").arg(dir.path());
