@@ -11,6 +11,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     neovim.url = "github:s3igo/dotfiles?dir=neovim";
+    advisory-db = {
+      url = "github:rustsec/advisory-db";
+      flake = false;
+    };
   };
 
   outputs =
@@ -21,6 +25,7 @@
       fenix,
       crane,
       neovim,
+      advisory-db,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -39,8 +44,27 @@
           strictDeps = true;
         };
         cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+        dassai = craneLib.buildPackage (
+          commonArgs
+          // {
+            inherit cargoArtifacts;
+            doCheck = false;
+          }
+        );
+        inherit (fenix'.default) rustfmt; # rustfmt nightly
       in
       {
+        checks = {
+          inherit dassai;
+          dassai-clippy = craneLib.cargoClippy (commonArgs // { inherit cargoArtifacts; });
+          dassai-fmt = craneLib.cargoFmt {
+            inherit src;
+            buildInputs = [ rustfmt ];
+          };
+          dassai-audit = craneLib.cargoAudit { inherit src advisory-db; };
+          dassai-nextest = craneLib.cargoNextest (commonArgs // { inherit cargoArtifacts; });
+        };
+
         packages = {
           neovim = neovim.withModules {
             inherit system pkgs;
@@ -52,15 +76,15 @@
               { plugins.lsp.servers.taplo.enable = true; }
             ];
           };
-          dassai = craneLib.buildPackage (commonArgs // { inherit cargoArtifacts; });
-          default = self.packages.${system}.dassai;
+          inherit dassai;
+          default = dassai;
         };
 
         devShells.default = pkgs.mkShell {
           inherit buildInputs;
           packages = [
             toolchain
-            fenix'.default.rustfmt # rustfmt nightly
+            rustfmt
             self.packages.${system}.neovim
           ];
         };
