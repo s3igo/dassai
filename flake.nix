@@ -73,7 +73,6 @@
               markdown
               nix
               rust
-              { plugins.lsp.servers.taplo.enable = true; }
             ];
           };
           inherit dassai;
