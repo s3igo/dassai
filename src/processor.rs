@@ -34,7 +34,7 @@ pub fn process_file(path: &Path) -> Result<()> {
         let line = line.context("Failed to read line")?;
         println!("{line}");
     }
-    println!("```\n");
+    println!("```\n\n");
 
     Ok(())
 }
