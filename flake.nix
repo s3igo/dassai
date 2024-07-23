@@ -46,6 +46,7 @@
             inherit system pkgs;
             modules = with neovim.modules; [
               im-select
+              markdown
               nix
               rust
               { plugins.lsp.servers.taplo.enable = true; }
