@@ -1,11 +1,11 @@
 use std::{fs::File, io::Write, process::Command};
 
+use anyhow::Result;
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
-use tempfile::tempdir;
 
 #[test]
-fn test_version_flag() -> Result<(), Box<dyn std::error::Error>> {
+fn test_version_flag() -> Result<()> {
     let mut cmd = Command::cargo_bin("dassai")?;
     cmd.arg("--version");
     cmd.assert()
@@ -15,26 +15,28 @@ fn test_version_flag() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_process_directory() -> Result<(), Box<dyn std::error::Error>> {
-    let dir = tempdir()?;
+fn test_process_directory() -> Result<()> {
+    let dir = tempfile::tempdir()?;
     let file_path = dir.path().join("test.rs");
-    let mut file = File::create(file_path)?;
+    let mut file = File::create(&file_path)?;
     writeln!(file, "fn main() {{}}")?;
 
     let mut cmd = Command::cargo_bin("dassai")?;
     cmd.arg(dir.path());
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("```rs"))
-        .stdout(predicate::str::contains("// File:"))
+        .stdout(predicate::str::contains(format!(
+            "```rs title=\"{}\"",
+            file_path.display()
+        )))
         .stdout(predicate::str::contains("fn main() {}"));
 
     Ok(())
 }
 
 #[test]
-fn test_process_with_extensions() -> Result<(), Box<dyn std::error::Error>> {
-    let dir = tempdir()?;
+fn test_process_with_extensions() -> Result<()> {
+    let dir = tempfile::tempdir()?;
     let rs_file = dir.path().join("test.rs");
     let js_file = dir.path().join("test.js");
 

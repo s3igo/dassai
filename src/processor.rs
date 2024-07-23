@@ -1,10 +1,10 @@
 use std::{
     fs::File,
     io::{BufRead, BufReader},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
-use anyhow::{Context, Result};
+use anyhow::{Context as _, Result};
 use walkdir::WalkDir;
 
 pub fn process_directory(dir: &PathBuf, extensions: &Option<Vec<String>>) -> Result<()> {
@@ -17,33 +17,35 @@ pub fn process_directory(dir: &PathBuf, extensions: &Option<Vec<String>>) -> Res
             }
         }
     }
+
     Ok(())
 }
 
-pub fn process_file(path: &std::path::Path) -> Result<()> {
+pub fn process_file(path: &Path) -> Result<()> {
     let file = File::open(path).context("Failed to open file")?;
     let reader = BufReader::new(file);
 
     println!(
-        "```{}",
-        path.extension().unwrap_or_default().to_string_lossy()
+        "```{} title=\"{}\"",
+        path.extension().unwrap_or_default().to_string_lossy(),
+        path.display()
     );
-    println!("// File: {}", path.display());
     for line in reader.lines() {
         let line = line.context("Failed to read line")?;
-        println!("{}", line);
+        println!("{line}");
     }
     println!("```\n");
 
     Ok(())
 }
 
-fn should_process_file(path: &std::path::Path, extensions: &Option<Vec<String>>) -> bool {
+fn should_process_file(path: &Path, extensions: &Option<Vec<String>>) -> bool {
     if let Some(exts) = extensions {
         path.extension()
             .map(|ext| exts.contains(&ext.to_string_lossy().to_string()))
             .unwrap_or(false)
     } else {
+        // If no extensions are provided, process all files.
         true
     }
 }
@@ -63,8 +65,6 @@ mod tests {
 
         let result = process_file(&file_path);
         assert!(result.is_ok());
-        // Note: We can't easily test the stdout without additional setup,
-        // but we can verify that the function completes without error.
     }
 
     #[test]

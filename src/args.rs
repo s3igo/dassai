@@ -22,12 +22,6 @@ impl Args {
     pub fn parse() -> Self {
         args().run()
     }
-
-    pub fn extensions_vec(&self) -> Option<Vec<String>> {
-        self.extensions
-            .as_ref()
-            .map(|ext| ext.split(',').map(String::from).collect())
-    }
 }
 
 #[cfg(test)]
@@ -60,7 +54,10 @@ mod tests {
             paths: vec![],
         };
 
-        let extensions_vec = args.extensions_vec();
+        let extensions_vec = args
+            .extensions
+            .map(|ext| ext.split(',').map(String::from).collect());
+
         assert_eq!(
             extensions_vec,
             Some(vec!["rs".to_string(), "js".to_string(), "py".to_string()])

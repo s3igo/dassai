@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{bail, Result};
 use dassai::{
     args::Args,
     processor::{process_directory, process_file},
@@ -17,19 +17,17 @@ fn main() -> Result<()> {
         .map(|ext| ext.split(',').map(String::from).collect());
 
     if args.paths.is_empty() {
-        anyhow::bail!("No paths specified. Use --help for usage information.");
+        bail!("No paths specified. Use --help for usage information.");
     }
 
     for path in args.paths {
-        if path.is_file() {
-            process_file(&path)?;
-        } else if path.is_dir() {
-            process_directory(&path, &extensions)?;
-        } else {
-            eprintln!(
+        match path {
+            path if path.is_file() => process_file(&path)?,
+            path if path.is_dir() => process_directory(&path, &extensions)?,
+            _ => eprintln!(
                 "Warning: '{}' is neither a file nor a directory, skipping.",
                 path.display()
-            );
+            ),
         }
     }
 
