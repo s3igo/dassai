@@ -1,8 +1,15 @@
 # Dassai
 
-Dassai is a Rust-based command-line tool
+Dassai is a command-line tool written in Rust
 that recursively searches for source code files in specified directories,
 formats their contents into Markdown code blocks, and outputs them to standard output.
+
+This tool is intended to format local files for use in LLM prompts or RAG inputs.
+
+## What is Dassai?
+
+Dassai（獺祭）refers to the habit of otters arranging the fish they have caught,
+and by extension, it means spreading many reference books around when creating poetry or literature.
 
 ## Features
 
