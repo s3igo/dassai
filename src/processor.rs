@@ -7,10 +7,10 @@ use std::{
 use anyhow::{Context as _, Result};
 use walkdir::WalkDir;
 
-fn should_process_file(path: &Path, extensions: &Option<Vec<String>>) -> bool {
+fn should_process_file(path: &Path, extensions: &Option<Vec<&str>>) -> bool {
     if let Some(exts) = extensions {
         path.extension()
-            .map(|ext| exts.contains(&ext.to_string_lossy().to_string()))
+            .map(|ext| exts.contains(&ext.to_string_lossy().to_string().as_str()))
             .unwrap_or(false)
     } else {
         // If no extensions are provided, process all files.
@@ -18,12 +18,14 @@ fn should_process_file(path: &Path, extensions: &Option<Vec<String>>) -> bool {
     }
 }
 
-pub fn process_directory(dir: &PathBuf, extensions: &Option<Vec<String>>) -> Result<()> {
+pub fn process_directory(dir: &PathBuf, extensions: &Option<String>) -> Result<()> {
+    let extensions: Option<Vec<_>> = extensions.as_ref().map(|ext| ext.split(',').collect());
+
     for entry in WalkDir::new(dir) {
         let entry = entry.context("Failed to read directory entry")?;
         if entry.file_type().is_file() {
             let path = entry.path();
-            if should_process_file(path, extensions) {
+            if should_process_file(path, &extensions) {
                 process_file(path)?;
             }
         }
@@ -60,7 +62,7 @@ mod tests {
     #[test]
     fn test_should_process_file() {
         let path = PathBuf::from("test.rs");
-        let extensions = Some(vec!["rs".to_string(), "txt".to_string()]);
+        let extensions = Some(vec!["rs", "txt"]);
 
         assert!(should_process_file(&path, &extensions));
         assert!(!should_process_file(&PathBuf::from("test.js"), &extensions));

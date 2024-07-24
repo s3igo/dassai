@@ -12,10 +12,6 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    let extensions: Option<Vec<String>> = args
-        .extensions
-        .map(|ext| ext.split(',').map(String::from).collect());
-
     if args.paths.is_empty() {
         bail!("No paths specified. Use --help for usage information.");
     }
@@ -23,7 +19,7 @@ fn main() -> Result<()> {
     for path in args.paths {
         match path {
             path if path.is_file() => process_file(&path)?,
-            path if path.is_dir() => process_directory(&path, &extensions)?,
+            path if path.is_dir() => process_directory(&path, &args.extensions)?,
             _ => eprintln!(
                 "Warning: '{}' is neither a file nor a directory, skipping.",
                 path.display()
