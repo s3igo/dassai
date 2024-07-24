@@ -6,6 +6,29 @@ use assert_fs::{prelude::*, NamedTempFile, TempDir};
 use predicates::prelude::*;
 
 #[test]
+fn test_empty() -> Result<()> {
+    let mut cmd = Command::cargo_bin("dassai")?;
+    cmd.assert().failure().stderr(predicate::str::contains(
+        "No paths specified. Use --help for usage information.",
+    ));
+
+    Ok(())
+}
+
+#[test]
+fn test_invalid_path() -> Result<()> {
+    let mut cmd = Command::cargo_bin("dassai")?;
+    cmd.arg("invalid_path");
+    // The error message is printed to stderr, but the program still exits with a
+    // success status code.
+    cmd.assert().success().stderr(predicate::str::contains(
+        "Warning: 'invalid_path' is neither a file nor a directory, skipping.",
+    ));
+
+    Ok(())
+}
+
+#[test]
 fn test_specify_directory() -> Result<()> {
     let dir = TempDir::new()?;
     let file = dir.child("test.rs");

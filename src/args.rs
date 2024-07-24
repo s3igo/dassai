@@ -29,6 +29,11 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_args_invariants() {
+        args().check_invariants(false);
+    }
+
+    #[test]
     fn test_args_parse() {
         let args = Args {
             version: false,
