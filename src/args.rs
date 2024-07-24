@@ -9,7 +9,7 @@ pub struct Args {
     #[bpaf(long("version"), short('V'), switch)]
     pub version: bool,
 
-    /// File extensions to include (e.g., "rs,js,py")
+    /// File extensions to include (e.g., 'rs,js,py')
     #[bpaf(long, short, argument("EXTENSIONS"))]
     pub extensions: Option<String>,
 
