@@ -6,7 +6,7 @@ use bpaf::Bpaf;
 #[bpaf(options)]
 pub struct Args {
     /// Print version information
-    #[bpaf(long("version"), short('V'), switch)]
+    #[bpaf(long, short('V'), switch)]
     pub version: bool,
 
     /// File extensions to include (e.g., 'rs,js,py')
