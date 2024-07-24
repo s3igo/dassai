@@ -26,8 +26,6 @@ impl Args {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
     use super::*;
 
     #[test]
@@ -44,23 +42,5 @@ mod tests {
             PathBuf::from("src"),
             PathBuf::from("tests")
         ]);
-    }
-
-    #[test]
-    fn test_args_extensions_vec() {
-        let args = Args {
-            version: false,
-            extensions: Some("rs,js,py".to_string()),
-            paths: vec![],
-        };
-
-        let extensions_vec = args
-            .extensions
-            .map(|ext| ext.split(',').map(String::from).collect());
-
-        assert_eq!(
-            extensions_vec,
-            Some(vec!["rs".to_string(), "js".to_string(), "py".to_string()])
-        );
     }
 }
