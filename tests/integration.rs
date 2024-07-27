@@ -85,3 +85,27 @@ fn test_multiple_paths() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn test_ignore_vcs() -> Result<()> {
+    let dir = TempDir::new()?;
+
+    let gitignore = dir.child(".ignore");
+    let rs_file = dir.child("test.rs");
+
+    gitignore.write_str("test.rs")?;
+    rs_file.write_str("fn main() {}")?;
+
+    // Initialize git repository because `require_git()` is enabled (by default) in
+    // ignore::WalkBuilder in `src/processor.rs`
+    let mut cmd = Command::new("git");
+    cmd.arg("init").arg(dir.path());
+    cmd.assert().success();
+
+    // ignored by default
+    let mut cmd = Command::cargo_bin("dassai")?;
+    cmd.arg(dir.path());
+    cmd.assert().success().stdout(predicate::str::is_empty());
+
+    Ok(())
+}

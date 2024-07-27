@@ -19,7 +19,7 @@ fn main() -> Result<()> {
     for path in args.paths {
         match path {
             path if path.is_file() => process_file(&path)?,
-            path if path.is_dir() => process_directory(&path, &args.extensions)?,
+            path if path.is_dir() => process_directory(&path, &args.extensions, &args.exclude)?,
             _ => eprintln!(
                 "Warning: '{}' is neither a file nor a directory, skipping.",
                 path.display()

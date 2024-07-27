@@ -5,13 +5,17 @@ use bpaf::Bpaf;
 #[derive(Debug, Clone, Bpaf)]
 #[bpaf(options)]
 pub struct Args {
-    /// Print version information
-    #[bpaf(long, short('V'), switch)]
-    pub version: bool,
-
     /// File extensions to include (e.g., 'rs,js,py')
     #[bpaf(long, short, argument("EXTENSIONS"))]
     pub extensions: Option<String>,
+
+    /// File names to exclude (e.g., 'README.md,LICENSE')
+    #[bpaf(long, short('E'), argument("EXCLUDE"))]
+    pub exclude: Option<String>,
+
+    /// Print version information
+    #[bpaf(long, short('V'), switch)]
+    pub version: bool,
 
     /// The files or directories to process
     #[bpaf(positional("PATH"), many)]
@@ -36,9 +40,10 @@ mod tests {
     #[test]
     fn test_args_parse() {
         let args = Args {
-            version: false,
             extensions: Some("rs,js".to_string()),
+            exclude: None,
             paths: vec![PathBuf::from("src"), PathBuf::from("tests")],
+            version: false,
         };
 
         assert!(!args.version);

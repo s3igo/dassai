@@ -38,15 +38,16 @@ nix run github:s3igo/dassai -- .
 ## Usage
 
 ```txt
-Usage: dassai [-V] [-e=EXTENSIONS] [PATH]...
+Usage: dassai [-e=EXTENSIONS] [-E=EXCLUDE] [-V] [PATH]...
 
 Available positional items:
-    PATH           The files or directories to process
+    PATH                   The files or directories to process
 
 Available options:
-    -V, --version  Print version information
-    -e, --extensions=EXTENSIONS  File extensions to include (e.g., "rs,js,py")
-    -h, --help     Prints help information
+    -e, --extensions=EXTENSIONS  File extensions to include (e.g., 'rs,js,py')
+    -E, --exclude=EXCLUDE  File names to exclude (e.g., 'README.md,LICENSE')
+    -V, --version          Print version information
+    -h, --help             Prints help information
 ```
 
 ## Examples
