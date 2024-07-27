@@ -19,8 +19,10 @@ fn main() -> Result<()> {
 
     let paths = {
         let stdin = io::stdin();
-        if args.paths.is_empty() && !stdin.is_terminal() {
-            // Read paths from stdin if piped
+        let is_piped = !stdin.is_terminal();
+        let is_hyphen = args.paths.len() == 1 && args.paths.contains(&PathBuf::from("-"));
+        if (args.paths.is_empty() && is_piped) || is_hyphen {
+            // Read paths from stdin if piped or if '-' is specified and only one element
             let lines = stdin.lock().lines().collect::<Result<Vec<_>, _>>()?;
             lines.into_iter().map(PathBuf::from).collect()
         } else {

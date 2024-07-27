@@ -38,16 +38,20 @@ nix run github:s3igo/dassai -- .
 ## Usage
 
 ```txt
+Dassai: A command-line tool to format source code files into Markdown code blocks.
+
 Usage: dassai [-e=EXTENSIONS] [-E=EXCLUDE] [-V] [PATH]...
 
 Available positional items:
-    PATH                   The files or directories to process
+    PATH                   The files or directories to process, if no paths are specified or if '-'
+                           is specified, paths will be read from standard input
 
 Available options:
     -e, --extensions=EXTENSIONS  File extensions to include (e.g., 'rs,js,py')
     -E, --exclude=EXCLUDE  File names to exclude (e.g., 'README.md,LICENSE')
     -V, --version          Print version information
     -h, --help             Prints help information
+    -V, --version          Prints version information
 ```
 
 ## Examples
@@ -61,6 +65,9 @@ dassai --extensions rs /path/to/rust/project
 
 # Process multiple paths
 dassai src tests examples
+
+# Read paths from standard input
+find . -name '*.rs' | dassai -
 ```
 
 ## License

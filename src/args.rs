@@ -3,7 +3,9 @@ use std::path::PathBuf;
 use bpaf::Bpaf;
 
 #[derive(Debug, Clone, Bpaf)]
-#[bpaf(options)]
+#[bpaf(options, version)]
+/// Dassai: A command-line tool to format source code files into Markdown code
+/// blocks.
 pub struct Args {
     /// File extensions to include (e.g., 'rs,js,py')
     #[bpaf(long, short, argument("EXTENSIONS"))]
@@ -17,7 +19,9 @@ pub struct Args {
     #[bpaf(long, short('V'), switch)]
     pub version: bool,
 
-    /// The files or directories to process
+    /// The files or directories to process,
+    /// if no paths are specified or if '-' is specified, paths will be read
+    /// from standard input
     #[bpaf(positional("PATH"), many)]
     pub paths: Vec<PathBuf>,
 }
