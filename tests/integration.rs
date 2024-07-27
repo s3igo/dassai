@@ -1,9 +1,24 @@
-use std::process::Command;
-
 use anyhow::Result;
-use assert_cmd::prelude::*;
+use assert_cmd::Command;
 use assert_fs::{prelude::*, NamedTempFile, TempDir};
 use predicates::prelude::*;
+
+#[test]
+fn test_stdin() -> Result<()> {
+    let file = NamedTempFile::new("test.rs")?;
+    file.write_str("fn main() {}")?;
+
+    let mut cmd = Command::cargo_bin("dassai")?;
+    cmd.write_stdin(file.path().display().to_string());
+    // std::io::stdin().is_terminal() is always false in tests
+    // SEE: https://github.com/assert-rs/assert_cmd/issues/138
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("```rs"))
+        .stdout(predicate::str::contains("fn main() {}"));
+
+    Ok(())
+}
 
 #[test]
 fn test_empty() -> Result<()> {
