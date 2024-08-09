@@ -1,6 +1,6 @@
 use std::{
     fs::File,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, Read as _, Seek as _, SeekFrom},
     path::{Path, PathBuf},
 };
 
@@ -58,7 +58,21 @@ pub fn process_directory(
 
 pub fn process_file(path: &Path) -> Result<()> {
     let file = File::open(path).context("Failed to open file")?;
-    let reader = BufReader::new(file);
+    let mut reader = BufReader::new(file);
+
+    // Check if the file is binary
+    let mut buffer = [0; 512];
+    let bytes_read = reader.read(&mut buffer)?;
+    if buffer[..bytes_read].contains(&0) {
+        eprintln!(
+            "Warning: '{}' is binary and cannot be processed, skipping.",
+            path.display()
+        );
+        return Ok(());
+    }
+
+    // Reset the reader to the beginning of the file
+    reader.seek(SeekFrom::Start(0))?;
 
     println!(
         "```{} title=\"{}\"",
@@ -117,3 +131,4 @@ mod tests {
         Ok(())
     }
 }
+

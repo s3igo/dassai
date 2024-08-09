@@ -17,6 +17,8 @@ and by extension, it means spreading many reference books around when creating p
 - Can filter by specific file extensions.
 - Outputs source code in Markdown format.
 - Capable of processing multiple paths at once.
+- Ignores files specified in .gitignore by default.
+    (For more complex queries on files, consider using external tools like [fd](https://github.com/sharkdp/fd).)
 
 ## Installation
 
@@ -67,7 +69,11 @@ dassai --extensions rs /path/to/rust/project
 dassai src tests examples
 
 # Read paths from standard input
-find . -name '*.rs' | dassai -
+find -name '*.rs' | dassai -
+fd -e rs | dassai -
+
+# Copy output (Mac)
+dassai . | pbcopy
 ```
 
 ## License
