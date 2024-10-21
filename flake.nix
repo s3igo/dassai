@@ -10,7 +10,11 @@
       url = "github:ipetkov/crane";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    neovim.url = "github:s3igo/dotfiles?dir=neovim";
+    nixvim = {
+      url = "github:nix-community/nixvim";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    neovim-config.url = "github:s3igo/dotfiles?dir=neovim-config";
     advisory-db = {
       url = "github:rustsec/advisory-db";
       flake = false;
@@ -24,21 +28,26 @@
       flake-utils,
       fenix,
       crane,
-      neovim,
+      nixvim,
+      neovim-config,
       advisory-db,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        fenix' = fenix.packages.${system};
-        toolchain = fenix'.fromToolchainFile {
-          file = ./rust-toolchain.toml;
-          sha256 = "sha256-Ngiz76YP4HTY75GGdH2P+APE/DEIx2R/Dn+BwwOyzZU=";
-        };
+        toolchain =
+          with fenix.packages.${system};
+          combine [
+            (fromToolchainFile {
+              file = ./rust-toolchain.toml;
+              sha256 = "sha256-yMuSb5eQPO/bHv+Bcf/US8LVMbf/G/0MSfiPwBhiPpk=";
+            })
+            default.rustfmt # rustfmt nightly
+          ];
         craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
         src = craneLib.cleanCargoSource ./.;
-        buildInputs = with pkgs; lib.optionals stdenv.isDarwin [ libiconv ];
+        buildInputs = with pkgs; lib.optional stdenv.isDarwin libiconv;
         commonArgs = {
           inherit src buildInputs;
           strictDeps = true;
@@ -51,27 +60,22 @@
             doCheck = false;
           }
         );
-        inherit (fenix'.default) rustfmt; # rustfmt nightly
       in
       {
         checks = {
           inherit dassai;
           dassai-clippy = craneLib.cargoClippy (commonArgs // { inherit cargoArtifacts; });
-          dassai-fmt = craneLib.cargoFmt {
-            inherit src;
-            buildInputs = [ rustfmt ];
-          };
+          dassai-fmt = craneLib.cargoFmt { inherit src; };
           dassai-audit = craneLib.cargoAudit { inherit src advisory-db; };
           dassai-nextest = craneLib.cargoNextest (commonArgs // { inherit cargoArtifacts; });
         };
 
         packages = {
-          neovim = neovim.withModules {
-            inherit system pkgs;
-            modules = with neovim.modules; [
-              im-select
-              markdown
+          neovim = nixvim.legacyPackages.${system}.makeNixvim {
+            imports = with neovim-config.nixosModules; [
+              default
               nix
+              markdown
               rust
             ];
           };
@@ -82,9 +86,12 @@
         devShells.default = pkgs.mkShell {
           inherit buildInputs;
           packages = [
+            pkgs.cargo-nextest
             toolchain
-            rustfmt
-            self.packages.${system}.neovim
+            (neovim-config.lib.customName {
+              inherit pkgs;
+              nvim = self.packages.${system}.neovim;
+            })
           ];
         };
       }
