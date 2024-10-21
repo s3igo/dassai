@@ -51,7 +51,7 @@ Available positional items:
 Available options:
     -e, --extensions=EXTENSIONS  File extensions to include (e.g., 'rs,js,py')
     -E, --exclude=EXCLUDE  File names to exclude (e.g., 'README.md,LICENSE')
-    -V, --version          Print version information
+    -V, --version          Prints version information
     -h, --help             Prints help information
     -V, --version          Prints version information
 ```

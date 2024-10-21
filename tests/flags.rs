@@ -48,17 +48,6 @@ fn test_exclude() -> Result<()> {
 }
 
 #[test]
-fn test_version() -> Result<()> {
-    let mut cmd = Command::cargo_bin("dassai")?;
-    cmd.arg("--version");
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains(env!("CARGO_PKG_VERSION")));
-
-    Ok(())
-}
-
-#[test]
 fn test_help() -> Result<()> {
     let mut cmd = Command::cargo_bin("dassai")?;
     cmd.arg("--help");

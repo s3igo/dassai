@@ -12,11 +12,6 @@ use dassai::{
 fn main() -> Result<()> {
     let args = Args::parse();
 
-    if args.version {
-        println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
-        return Ok(());
-    }
-
     let paths = {
         let stdin = io::stdin();
         let is_piped = !stdin.is_terminal();

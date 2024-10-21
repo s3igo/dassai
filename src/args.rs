@@ -2,10 +2,10 @@ use std::path::PathBuf;
 
 use bpaf::Bpaf;
 
-#[derive(Debug, Clone, Bpaf)]
-#[bpaf(options, version)]
 /// Dassai: A command-line tool to format source code files into Markdown code
 /// blocks.
+#[derive(Debug, Clone, Bpaf)]
+#[bpaf(options, version)]
 pub struct Args {
     /// File extensions to include (e.g., 'rs,js,py')
     #[bpaf(long, short, argument("EXTENSIONS"))]
@@ -14,10 +14,6 @@ pub struct Args {
     /// File names to exclude (e.g., 'README.md,LICENSE')
     #[bpaf(long, short('E'), argument("EXCLUDE"))]
     pub exclude: Option<String>,
-
-    /// Print version information
-    #[bpaf(long, short('V'), switch)]
-    pub version: bool,
 
     /// The files or directories to process,
     /// if no paths are specified or if '-' is specified, paths will be read
@@ -47,10 +43,8 @@ mod tests {
             extensions: Some("rs,js".to_string()),
             exclude: None,
             paths: vec![PathBuf::from("src"), PathBuf::from("tests")],
-            version: false,
         };
 
-        assert!(!args.version);
         assert_eq!(args.extensions, Some("rs,js".to_string()));
         assert_eq!(args.paths, vec![
             PathBuf::from("src"),
