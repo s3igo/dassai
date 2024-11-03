@@ -93,6 +93,9 @@
               nvim = self.packages.${system}.neovim;
             })
           ];
+          shellHook = ''
+            export RUST_BACKTRACE=1
+          '';
         };
       }
     );
