@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::{Context as _, Result};
+use anyhow::Context as _;
 use ignore::Walk;
 
 fn should_process_file(
@@ -35,11 +35,13 @@ fn should_process_file(
     is_extension_allowed && !is_excluded
 }
 
+/// # Errors
+/// Returns an error if the file cannot be opened or read.
 pub fn process_directory(
     dir: &PathBuf,
     extensions: &Option<String>,
     exclude: &Option<String>,
-) -> Result<()> {
+) -> anyhow::Result<()> {
     let extensions: Option<Vec<_>> = extensions.as_ref().map(|ext| ext.split(',').collect());
     let exclude: Option<Vec<_>> = exclude.as_ref().map(|ext| ext.split(',').collect());
 
@@ -56,7 +58,9 @@ pub fn process_directory(
     Ok(())
 }
 
-pub fn process_file(path: &Path) -> Result<()> {
+/// # Errors
+/// Returns an error if the file cannot be opened or read.
+pub fn process_file(path: &Path) -> anyhow::Result<()> {
     let file = File::open(path).context("Failed to open file")?;
     let mut reader = BufReader::new(file);
 
@@ -111,7 +115,7 @@ mod tests {
     }
 
     #[test]
-    fn test_process_file() -> Result<()> {
+    fn test_process_file() -> anyhow::Result<()> {
         let file = NamedTempFile::new("test.rs")?;
         file.touch()?;
 
@@ -121,7 +125,7 @@ mod tests {
     }
 
     #[test]
-    fn test_process_directory() -> Result<()> {
+    fn test_process_directory() -> anyhow::Result<()> {
         let dir = TempDir::new()?;
         let file = dir.child("test.rs");
         file.write_str("fn main() {}")?;

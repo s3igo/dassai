@@ -23,6 +23,7 @@ pub struct Args {
 }
 
 impl Args {
+    #[must_use]
     pub fn parse() -> Self {
         args().run()
     }
