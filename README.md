@@ -1,24 +1,23 @@
 # Dassai
 
-Dassai is a command-line tool written in Rust
-that recursively searches for source code files in specified directories,
-formats their contents into Markdown code blocks, and outputs them to standard output.
-
-This tool is intended to format local files for use in LLM prompts or RAG inputs.
+Dassai is a command-line tool written in Rust that helps prepare source code for AI interactions.
+It recursively searches through directories, converts source files into Markdown code blocks,
+and outputs them to standard output - making it perfect for use with LLM prompts or RAG systems.
 
 ## What is Dassai?
 
-Dassai（獺祭）refers to the habit of otters arranging the fish they have caught,
-and by extension, it means spreading many reference books around when creating poetry or literature.
+The name "Dassai"（獺祭）comes from an interesting Japanese concept.
+It originally described how otters would neatly arrange their caught fish on riverbanks.
+This image evolved to metaphorically represent the scholarly practice of surrounding oneself with reference materials while writing or studying - much like how this tool helps organize code for analysis.
 
 ## Features
 
-- Recursively scans specified directories.
-- Can filter by specific file extensions.
-- Outputs source code in Markdown format.
-- Capable of processing multiple paths at once.
-- Ignores files specified in .gitignore by default.
-    (For more complex queries on files, consider using external tools like [fd](https://github.com/sharkdp/fd).)
+- Recursively explores directories to find source files
+- Filters files by extension to focus on specific languages
+- Converts source code into clean Markdown format
+- Handles multiple input paths simultaneously
+- Automatically respects .gitignore rules
+  (Need more advanced file filtering? Try using [fd](https://github.com/sharkdp/fd) in combination with Dassai)
 
 ## Installation
 
@@ -69,8 +68,8 @@ dassai --extensions rs /path/to/rust/project
 dassai src tests examples
 
 # Read paths from standard input
-find -name '*.rs' | dassai -
-fd -e rs | dassai -
+find -name '*.rs' | dassai
+fd -e rs | dassai
 
 # Copy output (Mac)
 dassai . | pbcopy

@@ -83,7 +83,7 @@
           default = dassai;
         };
 
-        devShells.default = pkgs.mkShell {
+        devShells.default = pkgs.mkShellNoCC {
           inherit buildInputs;
           packages = [
             pkgs.cargo-nextest
