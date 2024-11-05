@@ -1,7 +1,11 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    systems.url = "github:nix-systems/default";
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
     fenix = {
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -22,81 +26,89 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      flake-utils,
-      fenix,
-      crane,
-      nixvim,
-      neovim-config,
-      advisory-db,
-    }:
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-        toolchain =
-          with fenix.packages.${system};
-          combine [
-            (fromToolchainFile {
-              file = ./rust-toolchain.toml;
-              sha256 = "sha256-yMuSb5eQPO/bHv+Bcf/US8LVMbf/G/0MSfiPwBhiPpk=";
-            })
-            default.rustfmt # rustfmt nightly
-          ];
-        craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
-        src = craneLib.cleanCargoSource ./.;
-        buildInputs = with pkgs; lib.optional stdenv.isDarwin libiconv;
-        commonArgs = {
-          inherit src buildInputs;
-          strictDeps = true;
-        };
-        cargoArtifacts = craneLib.buildDepsOnly commonArgs;
-        dassai = craneLib.buildPackage (
-          commonArgs
-          // {
-            inherit cargoArtifacts;
-            doCheck = false;
-          }
-        );
-      in
-      {
-        checks = {
-          inherit dassai;
-          dassai-clippy = craneLib.cargoClippy (commonArgs // { inherit cargoArtifacts; });
-          dassai-fmt = craneLib.cargoFmt { inherit src; };
-          dassai-audit = craneLib.cargoAudit { inherit src advisory-db; };
-          dassai-nextest = craneLib.cargoNextest (commonArgs // { inherit cargoArtifacts; });
-        };
+    inputs:
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = [ inputs.flake-parts.flakeModules.easyOverlay ];
 
-        packages = {
-          neovim = nixvim.legacyPackages.${system}.makeNixvim {
-            imports = with neovim-config.nixosModules; [
-              default
-              nix
-              markdown
-              rust
+      systems = import inputs.systems;
+
+      perSystem =
+        {
+          config,
+          pkgs,
+          inputs',
+          ...
+        }:
+
+        let
+          toolchain =
+            with inputs'.fenix.packages;
+            combine [
+              (fromToolchainFile {
+                file = ./rust-toolchain.toml;
+                sha256 = "sha256-yMuSb5eQPO/bHv+Bcf/US8LVMbf/G/0MSfiPwBhiPpk=";
+              })
+              default.rustfmt # rustfmt nightly
             ];
+          craneLib = (inputs.crane.mkLib pkgs).overrideToolchain toolchain;
+          src = craneLib.cleanCargoSource ./.;
+          buildInputs = with pkgs; lib.optional stdenv.isDarwin libiconv;
+          commonArgs = {
+            inherit src buildInputs;
+            strictDeps = true;
           };
-          inherit dassai;
-          default = dassai;
-        };
+          cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+        in
 
-        devShells.default = pkgs.mkShellNoCC {
-          inherit buildInputs;
-          packages = [
-            pkgs.cargo-nextest
-            toolchain
-            (neovim-config.lib.customName {
-              inherit pkgs;
-              nvim = self.packages.${system}.neovim;
-            })
-          ];
-          shellHook = ''
-            export RUST_BACKTRACE=1
-          '';
+        {
+          packages = {
+            neovim = inputs'.nixvim.legacyPackages.makeNixvim {
+              imports = with inputs.neovim-config.nixosModules; [
+                default
+                nix
+                markdown
+                rust
+              ];
+            };
+            dassai = craneLib.buildPackage (
+              commonArgs
+              // {
+                inherit cargoArtifacts;
+                doCheck = false;
+              }
+            );
+            default = config.packages.dassai;
+          };
+
+          checks = {
+            inherit (config.packages) dassai;
+            dassai-clippy = craneLib.cargoClippy (commonArgs // { inherit cargoArtifacts; });
+            dassai-fmt = craneLib.cargoFmt { inherit src; };
+            dassai-audit = craneLib.cargoAudit {
+              inherit src;
+              inherit (inputs) advisory-db;
+            };
+            dassai-nextest = craneLib.cargoNextest (commonArgs // { inherit cargoArtifacts; });
+          };
+
+          devShells.default = pkgs.mkShellNoCC {
+            inherit buildInputs;
+            packages = [
+              toolchain
+              pkgs.cargo-nextest
+              (inputs.neovim-config.lib.customName {
+                inherit pkgs;
+                nvim = config.packages.neovim;
+              })
+            ];
+            shellHook = ''
+              export RUST_BACKTRACE=1
+            '';
+          };
+
+          overlayAttrs = {
+            inherit (config.packages) dassai;
+          };
         };
-      }
-    );
+    };
 }
