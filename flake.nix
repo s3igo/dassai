@@ -1,4 +1,6 @@
 {
+  description = "CLI tool for converting source code into Markdown code blocks ";
+
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     systems.url = "github:nix-systems/default";
