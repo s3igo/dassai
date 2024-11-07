@@ -1,5 +1,5 @@
 {
-  description = "CLI tool for converting source code into Markdown code blocks ";
+  description = "CLI tool for converting source code into Markdown code blocks";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
@@ -12,10 +12,7 @@
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    crane = {
-      url = "github:ipetkov/crane";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    crane.url = "github:ipetkov/crane";
     nixvim = {
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -83,7 +80,7 @@
           };
 
           checks = {
-            inherit (config.packages) dassai;
+            dassai-build = config.packages.dassai;
             dassai-clippy = craneLib.cargoClippy (commonArgs // { inherit cargoArtifacts; });
             dassai-fmt = craneLib.cargoFmt { inherit src; };
             dassai-audit = craneLib.cargoAudit {
